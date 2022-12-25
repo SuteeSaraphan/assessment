@@ -12,6 +12,16 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+const defaultPort = ":2565"
+const createTableSQL = `
+CREATE TABLE IF NOT EXISTS expenses (
+	id SERIAL PRIMARY KEY,
+	title TEXT,
+	amount FLOAT,
+	note TEXT,
+	tags TEXT[]
+);`
+
 func initDB() error {
 	// Connect DB
 	dbStr := os.Getenv("DATABASE_URL")
@@ -22,21 +32,12 @@ func initDB() error {
 	defer db.Close()
 	// Create Table
 
-	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS expenses (
-		id SERIAL PRIMARY KEY,
-		title TEXT,
-		amount FLOAT,
-		note TEXT,
-		tags TEXT[]
-	);`)
+	_, err = db.Exec(createTableSQL)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-
-const defaultPort = ":2565"
 
 func hello(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello Welcome to the server KKGO:assessment")
