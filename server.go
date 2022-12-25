@@ -1,53 +1,24 @@
 package main
 
 import (
-	"database/sql"
-	"log"
 	"net/http"
 	"os"
 
-	_ "github.com/lib/pq"
-
+	"github.com/SuteeSaraphan/assessment/expanse"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/lib/pq"
 )
 
 const defaultPort = ":2565"
-const createTableSQL = `
-CREATE TABLE IF NOT EXISTS expenses (
-	id SERIAL PRIMARY KEY,
-	title TEXT,
-	amount FLOAT,
-	note TEXT,
-	tags TEXT[]
-);`
-
-func initDB() error {
-	// Connect DB
-	dbStr := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", dbStr)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	// Create Table
-
-	_, err = db.Exec(createTableSQL)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func hello(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello Welcome to the server KKGO:assessment")
 }
 
 func main() {
-	err := initDB()
-	if err != nil {
-		log.Fatal(err)
-	}
+	dbStr := os.Getenv("DATABASE_URL")
+	expanse.initDB(dbStr)
 
 	e := echo.New()
 
@@ -64,14 +35,17 @@ func main() {
 		}
 	})
 
+	// Routes
+	e.POST("/expenses", expanse.CreateExpenseHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
-	errServer := e.Start(port)
+	err := e.Start(port)
 	if err != nil {
-		e.Logger.Fatal(errServer)
+		e.Logger.Fatal(err)
 	}
 
 }
