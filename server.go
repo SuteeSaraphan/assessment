@@ -12,25 +12,41 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func initDB() *sql.DB {
+func initDB() error {
+	// Connect DB
 	dbStr := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", dbStr)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	defer db.Close()
+	// Create Table
 
-	return db
+	_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS expenses (
+		id SERIAL PRIMARY KEY,
+		title TEXT,
+		amount FLOAT,
+		note TEXT,
+		tags TEXT[]
+	);`)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-const defaultPort = "2565"
+const defaultPort = ":2565"
 
 func hello(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello Welcome to the server KKGO:assessment")
 }
 
 func main() {
-
-	db := initDB()
+	err := initDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	e := echo.New()
 
@@ -52,9 +68,9 @@ func main() {
 		port = defaultPort
 	}
 
-	err := e.Start(":" + port)
+	errServer := e.Start(port)
 	if err != nil {
-		e.Logger.Fatal(err)
+		e.Logger.Fatal(errServer)
 	}
 
 }
