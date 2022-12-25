@@ -68,6 +68,7 @@ func main() {
 	e.GET("/expenses", expanse.GetAllExpensesHandler)
 	e.GET("/expenses/:id", expanse.GetIdExpensesHandler)
 	e.POST("/expenses", expanse.CreateExpenseHandler)
+	e.PUT("/expenses/:id", expanse.UpdateExpenseHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
