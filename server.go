@@ -18,7 +18,7 @@ func hello(c echo.Context) error {
 
 func main() {
 	dbStr := os.Getenv("DATABASE_URL")
-	expanse.initDB(dbStr)
+	expanse.InitDB(dbStr)
 
 	e := echo.New()
 
@@ -26,14 +26,6 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.GET("/", hello)
-
-	//use middleware to log requests
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			e.Logger.Printf("Request: %s %s %s", c.Request().Method, c.Request().URL, c.Request().RemoteAddr)
-			return next(c)
-		}
-	})
 
 	// Routes
 	e.POST("/expenses", expanse.CreateExpenseHandler)

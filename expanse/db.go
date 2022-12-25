@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 	tags TEXT[]
 );`
 
-func initDB(dbUrl string) error {
+func InitDB(dbUrl string) error {
 	// Connect DB
 
 	db, err := sql.Open("postgres", dbUrl)
