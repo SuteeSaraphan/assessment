@@ -41,6 +41,17 @@ func hello(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello Welcome to the server KKGO:assessment")
 }
 
+func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authToken := c.Request().Header.Get("Authorization")
+
+		if authToken != "SuteeS" {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid Authentication token")
+		}
+		return next(c)
+	}
+}
+
 func main() {
 	dbStr := os.Getenv("DATABASE_URL")
 
@@ -48,6 +59,9 @@ func main() {
 	expanse.InitDB(dbStr)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	// Bonus middleware check Autorization
+	//e.Use(AuthMiddleware)
 
 	// Routes
 	e.GET("/", hello)
