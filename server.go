@@ -52,6 +52,7 @@ func main() {
 	// Routes
 	e.GET("/", hello)
 	e.GET("/expenses", expanse.GetAllExpensesHandler)
+	e.GET("/expenses/:id", expanse.GetIdExpensesHandler)
 	e.POST("/expenses", expanse.CreateExpenseHandler)
 
 	port := os.Getenv("PORT")
