@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/SuteeSaraphan/assessment/expanse"
 	"github.com/labstack/echo/v4"
@@ -11,7 +14,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const defaultPort = ":2565"
 const createTableSQL = `
 CREATE TABLE IF NOT EXISTS expenses (
 	id SERIAL PRIMARY KEY,
@@ -45,7 +47,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authToken := c.Request().Header.Get("Authorization")
 
-		if authToken != "SuteeS" {
+		if authToken != "November 10, 2009" {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid Authentication token")
 		}
 		return next(c)
@@ -61,7 +63,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Bonus middleware check Autorization
-	//e.Use(AuthMiddleware)
+	e.Use(AuthMiddleware)
 
 	// Routes
 	e.GET("/", hello)
@@ -70,13 +72,17 @@ func main() {
 	e.POST("/expenses", expanse.CreateExpenseHandler)
 	e.PUT("/expenses/:id", expanse.UpdateExpenseHandler)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	err := e.Start(port)
-	if err != nil {
+	go func() {
+		if err := e.Start(os.Getenv("PORT")); err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatalf("shutting down the server: %v", err)
+		}
+	}()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
 
